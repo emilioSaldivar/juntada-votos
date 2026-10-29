@@ -1,0 +1,74 @@
+{
+  "folders": [
+    { "name": "rompediscotek", "path": "." }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "data/**": true,
+      "bot-auth/**": true
+    },
+    "files.watcherExclude": {
+      "**/node_modules/**": true,
+      "bot-auth/**": true
+    },
+    "files.associations": {
+      ".env*": "dotenv"
+    },
+    "editor.tabSize": 2,
+    "files.eol": "\n",
+    "files.insertFinalNewline": true
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-azuretools.vscode-docker",
+      "mikestead.dotenv"
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Local: levantar (docker)",
+        "type": "shell",
+        "command": "docker compose up -d --build && docker compose ps",
+        "problemMatcher": []
+      },
+      {
+        "label": "Local: logs del bot (QR)",
+        "type": "shell",
+        "command": "docker compose logs -f bot",
+        "isBackground": true,
+        "problemMatcher": []
+      },
+      {
+        "label": "Local: bajar",
+        "type": "shell",
+        "command": "docker compose down",
+        "problemMatcher": []
+      },
+      {
+        "label": "VPS: estado (sólo lectura)",
+        "type": "shell",
+        "command": "bash scripts/deploy-vps.sh --estado",
+        "problemMatcher": []
+      },
+      {
+        "label": "VPS: desplegar",
+        "type": "shell",
+        "command": "bash scripts/deploy-vps.sh",
+        "problemMatcher": []
+      },
+      {
+        "label": "VPS: logs",
+        "type": "shell",
+        "command": "bash scripts/deploy-vps.sh --logs",
+        "isBackground": true,
+        "problemMatcher": []
+      }
+    ]
+  }
+}

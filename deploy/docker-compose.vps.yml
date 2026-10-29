@@ -1,0 +1,39 @@
+# Despliegue en una VPS detrás de nginx-proxy + acme-companion (HTTPS automático).
+# No publica puertos en el host: nginx-proxy enruta por VIRTUAL_HOST a la red externa "proxy".
+# Requiere DOMAIN y PORT en el .env. Lo usa scripts/deploy-vps.sh (se copia como docker-compose.yml).
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /app/data
+      BOT_WEBHOOK_URL: http://bot:3100/send
+      VIRTUAL_HOST: ${DOMAIN}
+      VIRTUAL_PORT: ${PORT}
+      LETSENCRYPT_HOST: ${DOMAIN}
+    volumes:
+      - ./data:/app/data
+    networks: [interna, proxy]
+    depends_on: [bot]
+    mem_limit: 192m
+    logging: { driver: json-file, options: { max-size: 5m, max-file: "3" } }
+
+  # Bot de WhatsApp: sin puertos ni acceso desde el proxy, solo desde la app.
+  bot:
+    build: ./bot
+    restart: unless-stopped
+    environment:
+      BOT_WEBHOOK_TOKEN: ${BOT_WEBHOOK_TOKEN}
+      BOT_MAX_PER_HOUR: ${BOT_MAX_PER_HOUR:-60}
+    volumes:
+      - ./bot-auth:/app/auth
+    networks: [interna]
+    mem_limit: 384m
+    logging: { driver: json-file, options: { max-size: 5m, max-file: "3" } }
+
+networks:
+  interna:
+  proxy:
+    external: true

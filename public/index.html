@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>¿Cuándo nos juntamos?</title>
+<meta name="description" content="Votá los días que podés para la juntada 🍻">
+<meta property="og:title" content="¿Cuándo nos juntamos? 🍻">
+<meta property="og:description" content="Marcá todos los días que podés y elegimos el más votado.">
+<meta name="theme-color" content="#2b1055">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍻</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg1: #2b1055; --bg2: #7597de;
+    --card: rgba(255,255,255,.96);
+    --ink: #24163d; --muted: #7a6d93;
+    --pick: #ff3d7f; --pick2: #ff9a3d;
+    --heat: 124, 77, 255;
+    --ok: #19b37d; --line: #ece6f7;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    font-family: 'Fredoka', system-ui, sans-serif;
+    color: var(--ink);
+    background: linear-gradient(160deg, var(--bg1) 0%, #5b2a86 45%, var(--bg2) 100%) fixed;
+    background-color: var(--bg1);
+    min-height: 100vh;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 16px; }
+  .hidden { display: none !important; }
+  button { font: inherit; cursor: pointer; border: 0; }
+
+  /* ---------- login ---------- */
+  .login { min-height: 90vh; display: flex; flex-direction: column; justify-content: center; }
+  .hero { text-align: center; color: #fff; margin-bottom: 20px; }
+  .hero .big { font-size: 72px; line-height: 1; animation: wobble 2.4s ease-in-out infinite; display: inline-block; }
+  .hero h1 { font-size: 32px; margin: 12px 0 6px; }
+  .hero p { margin: 0; opacity: .85; }
+  .card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: 0 12px 40px rgba(20,0,60,.25); }
+  label { display: block; font-weight: 600; margin-bottom: 8px; }
+  .phone { display: flex; border: 2px solid var(--line); border-radius: 14px; overflow: hidden; transition: border-color .2s; }
+  .phone:focus-within, .code:focus { border-color: var(--pick); }
+  .phone span { padding: 14px 12px; background: #f6f2fc; color: var(--muted); font-weight: 600; }
+  .phone input, .code { flex: 1; border: 0; padding: 14px; font: inherit; font-size: 18px; outline: none; min-width: 0; background: transparent; color: var(--ink); }
+  .code { width: 100%; border: 2px solid var(--line); border-radius: 14px; text-align: center; letter-spacing: 10px; font-size: 26px; font-weight: 600; }
+  .btn { width: 100%; margin-top: 14px; padding: 15px; border-radius: 14px; font-size: 17px; font-weight: 600; color: #fff;
+         background: linear-gradient(90deg, var(--pick), var(--pick2)); box-shadow: 0 6px 18px rgba(255,61,127,.35); transition: transform .1s, opacity .2s; }
+  .btn:active { transform: scale(.97); }
+  .btn:disabled { opacity: .6; }
+  .link { background: none; color: var(--muted); text-decoration: underline; margin-top: 12px; width: 100%; padding: 6px; }
+  .msg { min-height: 22px; margin-top: 10px; font-size: 14px; color: #d1284f; text-align: center; }
+  .msg.ok { color: var(--ok); }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 14px; text-align: center; }
+
+  /* ---------- app ---------- */
+  header.top { display: flex; align-items: center; justify-content: space-between; color: #fff; padding: 4px 2px 14px; }
+  header.top h2 { margin: 0; font-size: 22px; }
+  header.top small { opacity: .8; font-size: 14px; }
+  .ghost { background: rgba(255,255,255,.15); color: #fff; padding: 8px 12px; border-radius: 12px; font-size: 14px; }
+
+  .banner { border-radius: var(--radius); padding: 16px; margin-bottom: 14px; color: #fff; text-align: center;
+            background: linear-gradient(90deg, #19b37d, #3ec6e0); box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+  .banner b { font-size: 20px; display: block; margin: 4px 0 8px; }
+  .banner a { color: #fff; background: rgba(0,0,0,.18); padding: 8px 12px; border-radius: 10px; text-decoration: none; display: inline-block; font-size: 14px; }
+  .banner.closed { background: linear-gradient(90deg, #6b5b95, #8e7cc3); }
+
+  .tabs { display: flex; background: rgba(255,255,255,.15); border-radius: 16px; padding: 4px; margin-bottom: 14px; }
+  .tabs button { flex: 1; padding: 11px; border-radius: 12px; background: none; color: #fff; font-weight: 600; font-size: 16px; transition: background .2s, color .2s; }
+  .tabs button.on { background: #fff; color: var(--ink); }
+
+  .instr { margin: 0 0 12px; color: var(--muted); font-size: 15px; }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; padding: 8px 12px; border-radius: 999px; background: #f3eefb; color: var(--ink); font-size: 14px; font-weight: 500; }
+  .chip:active { transform: scale(.95); }
+
+  /* calendario */
+  .dow, .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .dow div { text-align: center; font-size: 12px; font-weight: 600; color: var(--muted); padding-bottom: 4px; text-transform: uppercase; }
+  .dow div:nth-child(n+5) { color: var(--pick); }
+  .day {
+    position: relative; aspect-ratio: 1 / 1.08; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(var(--heat), calc(.06 + var(--h, 0) * .5)); color: var(--ink); font-size: 17px; font-weight: 600;
+    user-select: none; touch-action: manipulation; transition: transform .15s, background .25s, box-shadow .25s;
+    border: 2px solid transparent;
+  }
+  .day.dec { background-color: rgba(var(--heat), calc(.06 + var(--h, 0) * .5)); border-color: rgba(var(--heat), .12); }
+  .day .m { font-size: 10px; font-weight: 600; color: var(--muted); line-height: 1; text-transform: uppercase; }
+  .day .cnt { position: absolute; bottom: 3px; font-size: 10px; font-weight: 600; color: rgba(var(--heat), 1); display: flex; align-items: center; gap: 2px; }
+  .day.pad { visibility: hidden; }
+  .day.sel { background: linear-gradient(140deg, var(--pick), var(--pick2)); color: #fff; box-shadow: 0 6px 14px rgba(255,61,127,.4); animation: pop .3s; }
+  .day.sel .m, .day.sel .cnt { color: rgba(255,255,255,.9); }
+  .day.sel::after { content: '✓'; position: absolute; top: 2px; right: 5px; font-size: 11px; }
+  .day.final { outline: 3px solid #19b37d; outline-offset: 2px; }
+  .day.final::before { content: '🎉'; position: absolute; top: -10px; left: -6px; font-size: 16px; }
+  .day.locked { cursor: default; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 12px; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; vertical-align: -2px; margin-right: 4px; }
+
+  /* barra inferior */
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+         background: rgba(255,255,255,.97); box-shadow: 0 -6px 24px rgba(20,0,60,.18); }
+  .bar .in { max-width: 520px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .bar b { font-size: 18px; }
+  .status { font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .status.ok { color: var(--ok); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .status.saving .dot { animation: blink .8s infinite; }
+
+  /* resultados */
+  .who { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .av { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; flex: none; }
+  .av.off { filter: grayscale(1); opacity: .35; }
+  .progress { height: 10px; background: #f0eaf9; border-radius: 99px; overflow: hidden; margin-top: 8px; }
+  .progress div { height: 100%; background: linear-gradient(90deg, var(--pick), var(--pick2)); border-radius: 99px; transition: width .5s; }
+  .podium { display: grid; grid-template-columns: 1fr 1.15fr 1fr; align-items: end; gap: 8px; margin: 18px 0 8px; }
+  .pod { text-align: center; cursor: pointer; }
+  .pod .medal { font-size: 30px; }
+  .pod .when { font-weight: 600; font-size: 14px; margin: 2px 0 6px; }
+  .pod .block { border-radius: 14px 14px 6px 6px; color: #fff; font-weight: 700; font-size: 22px; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+  .pod .block small { font-size: 11px; font-weight: 500; opacity: .9; }
+  .pod.p1 .block { height: 110px; background: linear-gradient(180deg, #ffc93d, #ff9a3d); }
+  .pod.p2 .block { height: 84px; background: linear-gradient(180deg, #b6b3d6, #8a86b8); }
+  .pod.p3 .block { height: 66px; background: linear-gradient(180deg, #e2a274, #c0703d); }
+  .rank { list-style: none; padding: 0; margin: 0; }
+  .rank li { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; padding: 10px 4px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .rank li:last-child { border-bottom: 0; }
+  .rank .n { color: var(--muted); font-weight: 600; }
+  .rank .d { font-weight: 500; }
+  .rank .meter { height: 6px; background: #f0eaf9; border-radius: 9px; margin-top: 5px; overflow: hidden; }
+  .rank .meter div { height: 100%; background: rgba(var(--heat), 1); border-radius: 9px; }
+  .rank .c { font-weight: 700; color: rgba(var(--heat), 1); }
+  .rank li.mine .d::after { content: ' ⭐'; font-size: 12px; }
+  h3 { margin: 0 0 4px; font-size: 18px; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0; }
+  .space { height: 14px; }
+  .empty { text-align: center; color: var(--muted); padding: 20px 0; }
+
+  /* bottom sheet */
+  .sheet-bg { position: fixed; inset: 0; background: rgba(20,0,50,.45); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 20; }
+  .sheet-bg.on { opacity: 1; pointer-events: auto; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; background: #fff; border-radius: 24px 24px 0 0; padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
+           max-width: 520px; margin: 0 auto; transform: translateY(110%); visibility: hidden; transition: transform .3s cubic-bezier(.2,.9,.3,1.1), visibility .3s; max-height: 80vh; overflow-y: auto; }
+  .sheet.on { transform: none; visibility: visible; }
+  .sheet .grab { width: 44px; height: 5px; background: #ddd; border-radius: 9px; margin: 0 auto 14px; }
+  .people { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .person { display: flex; align-items: center; gap: 10px; font-weight: 500; }
+
+  .toast { position: fixed; top: 16px; left: 50%; transform: translate(-50%, -150%); background: #24163d; color: #fff; padding: 10px 16px; border-radius: 12px;
+           z-index: 40; transition: transform .3s; font-size: 15px; max-width: 90vw; text-align: center; }
+  .toast.on { transform: translate(-50%, 0); }
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
+
+  @keyframes pop { 0% { transform: scale(.85); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  @keyframes wobble { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+  @keyframes blink { 50% { opacity: .2; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  @media (max-width: 360px) { .day { font-size: 15px; } .dow, .grid { gap: 4px; } .wrap { padding: 12px; } }
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="toast" id="toast"></div>
+
+<!-- LOGIN -->
+<section id="login" class="wrap login hidden">
+  <div class="hero">
+    <div class="big">🍻</div>
+    <h1 id="loginTitle">¿Cuándo nos juntamos?</h1>
+    <p>Marcá los días que podés y gana el más votado</p>
+  </div>
+  <div class="card">
+    <form id="phoneForm">
+      <label for="phone">Tu número de WhatsApp</label>
+      <div class="phone"><span id="cc">+595</span><input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="981 123 456" required></div>
+      <button class="btn" id="sendBtn">Mandame el código 📲</button>
+    </form>
+    <form id="codeForm" class="hidden">
+      <label for="code">Te mandamos un código por WhatsApp</label>
+      <input id="code" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" required>
+      <button class="btn" id="verifyBtn">Entrar 🚀</button>
+      <button type="button" class="link" id="backBtn">Cambiar número</button>
+    </form>
+    <div class="msg" id="loginMsg"></div>
+    <p class="hint">¿Tenés tu link personal? Abrilo directo desde WhatsApp y entrás sin código.</p>
+  </div>
+</section>
+
+<!-- APP -->
+<section id="app" class="wrap hidden">
+  <header class="top">
+    <div><small>Hola,</small><h2 id="hello">—</h2></div>
+    <button class="ghost" id="logout">Salir</button>
+  </header>
+
+  <div id="banner"></div>
+
+  <div class="tabs" role="tablist">
+    <button class="on" data-tab="vote" role="tab">📅 Votar</button>
+    <button data-tab="results" role="tab">🏆 Resultados</button>
+  </div>
+
+  <div id="tab-vote" class="card">
+    <p class="instr" id="instr">Tocá <b>todos</b> los días que podés. Se guarda solo ✨</p>
+    <div class="chips" id="chips">
+      <button class="chip" data-wd="5">🍕 Viernes</button>
+      <button class="chip" data-wd="6">🎉 Sábados</button>
+      <button class="chip" data-wd="0">☀️ Domingos</button>
+      <button class="chip" data-wd="all">✅ Todos</button>
+      <button class="chip" data-wd="none">🧹 Limpiar</button>
+    </div>
+    <div class="dow"><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div></div>
+    <div class="grid" id="grid"></div>
+    <div class="legend">
+      <span><i style="background:linear-gradient(140deg,var(--pick),var(--pick2))"></i>Puedo</span>
+      <span><i style="background:rgba(124,77,255,.5)"></i>Más color = más amigos pueden</span>
+    </div>
+  </div>
+
+  <div id="tab-results" class="hidden">
+    <div class="card">
+      <h3 id="votedTitle">—</h3>
+      <div class="progress"><div id="votedBar" style="width:0"></div></div>
+      <div class="who" id="who"></div>
+    </div>
+    <div class="space"></div>
+    <div class="card">
+      <h3>Los días favoritos</h3>
+      <p class="sub">Tocá un día para ver quién puede</p>
+      <div id="podium"></div>
+      <ul class="rank" id="rank"></ul>
+    </div>
+  </div>
+</section>
+
+<div class="bar hidden" id="bar"><div class="in">
+  <div><b id="count">0</b> <span id="countLbl">días elegidos</span></div>
+  <div class="status ok" id="status"><span class="dot"></span><span id="statusTxt">Al día</span></div>
+</div></div>
+
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const COLORS = ['#ff3d7f', '#7c4dff', '#ff9a3d', '#19b37d', '#3ec6e0', '#e94f37', '#f6c026', '#8e44ad', '#2d9cdb', '#00a884'];
+
+let S = null;            // estado del servidor
+let mine = new Set();    // mi selección local (fuente de verdad mientras edito)
+let dirty = false, saving = false, saveTimer = null, everVoted = false;
+let pendingPhone = '';
+
+// ---------- utilidades ----------
+const api = async (url, opts = {}) => {
+  const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', ...opts });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(data.error || 'Error de red'), { status: res.status });
+  return data;
+};
+const dt = (iso) => new Date(iso + 'T12:00:00');
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const fmt = (iso, o = { weekday: 'short', day: 'numeric', month: 'short' }) => cap(dt(iso).toLocaleDateString('es-PY', o).replaceAll('.', ''));
+const fmtLong = (iso) => cap(dt(iso).toLocaleDateString('es-PY', { weekday: 'long', day: 'numeric', month: 'long' }));
+const colorOf = (id) => COLORS[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
+const initials = (n) => n.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const avatar = (m, off) => `<span class="av${off ? ' off' : ''}" style="background:${colorOf(m.id)}" title="${esc(m.name)}">${esc(initials(m.name))}</span>`;
+
+function toast(msg, ms = 2200) {
+  const t = $('#toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), ms);
+}
+
+// ---------- login ----------
+async function boot() {
+  const meta = await api('/api/meta').catch(() => ({}));
+  if (meta.countryCode) $('#cc').textContent = '+' + meta.countryCode;
+  if (new URLSearchParams(location.search).get('e') === 'link') {
+    history.replaceState(null, '', '/');
+    setTimeout(() => toast('Ese link no es válido o fue renovado 😕', 3500), 300);
+  }
+  try {
+    S = await api('/api/state');
+    startApp();
+  } catch (e) {
+    $('#login').classList.remove('hidden');
+  }
+}
+
+$('#phoneForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = $('#sendBtn'), msg = $('#loginMsg');
+  btn.disabled = true; msg.textContent = ''; msg.className = 'msg';
+  pendingPhone = $('#phone').value;
+  try {
+    await api('/api/auth/request', { method: 'POST', body: JSON.stringify({ phone: pendingPhone }) });
+    $('#phoneForm').classList.add('hidden');
+    $('#codeForm').classList.remove('hidden');
+    $('#code').focus();
+    msg.className = 'msg ok'; msg.textContent = '¡Listo! Revisá tu WhatsApp 👀';
+  } catch (err) {
+    msg.textContent = err.message;
+  } finally { btn.disabled = false; }
+};
+
+$('#code').oninput = (e) => {
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+  if (e.target.value.length === 6) $('#codeForm').requestSubmit();
+};
+
+$('#codeForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = $('#verifyBtn'), msg = $('#loginMsg');
+  btn.disabled = true; msg.className = 'msg';
+  try {
+    await api('/api/auth/verify', { method: 'POST', body: JSON.stringify({ phone: pendingPhone, code: $('#code').value }) });
+    S = await api('/api/state');
+    $('#login').classList.add('hidden');
+    startApp();
+  } catch (err) {
+    msg.textContent = err.message; $('#code').value = '';
+  } finally { btn.disabled = false; }
+};
+
+$('#backBtn').onclick = () => {
+  $('#codeForm').classList.add('hidden'); $('#phoneForm').classList.remove('hidden'); $('#loginMsg').textContent = '';
+};
+
+$('#logout').onclick = async () => {
+  await api('/api/auth/logout', { method: 'POST' }).catch(() => {});
+  location.href = '/';
+};
+
+// ---------- app ----------
+function startApp() {
+  mine = new Set(S.me.dates);
+  everVoted = mine.size > 0;
+  $('#hello').textContent = S.me.name.split(' ')[0] + ' 👋';
+  $('#app').classList.remove('hidden');
+  $('#bar').classList.remove('hidden');
+  buildGrid();
+  render();
+  setInterval(poll, 8000);
+  document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && poll());
+}
+
+async function poll() {
+  if (document.visibilityState !== 'visible' || saving) return;
+  try {
+    const fresh = await api('/api/state');
+    S = fresh;
+    if (!dirty) mine = new Set(S.me.dates);
+    render();
+  } catch (e) {
+    if (e.status === 401) location.reload();
+  }
+}
+
+// cuenta de cada día combinando el server (otros) con mi selección local
+function countFor(d) {
+  const others = (S.byDay[d] || []).filter((id) => id !== S.me.id).length;
+  return others + (mine.has(d) ? 1 : 0);
+}
+
+function buildGrid() {
+  const grid = $('#grid');
+  const days = S.config.days;
+  const lead = (dt(days[0]).getDay() + 6) % 7; // lunes = 0
+  let html = '<div class="day pad"></div>'.repeat(lead);
+  for (const d of days) {
+    const date = dt(d);
+    const first = date.getDate() === 1 || d === days[0];
+    const month = date.toLocaleDateString('es-PY', { month: 'short' }).replace('.', '');
+    html += `<button class="day${date.getMonth() === 11 ? ' dec' : ''}" data-d="${d}" aria-label="${fmtLong(d)}">
+      ${first ? `<span class="m">${month}</span>` : ''}<span>${date.getDate()}</span><span class="cnt"></span></button>`;
+  }
+  grid.innerHTML = html;
+  setupPainting(grid);
+}
+
+// Tap para marcar/desmarcar. Con mouse también se puede arrastrar para "pintar" varios días.
+function setupPainting(grid) {
+  let mode = null;
+  const apply = (el) => {
+    const d = el?.dataset?.d;
+    if (!d || S.config.closed) return;
+    const has = mine.has(d);
+    if (mode === 'add' && !has) mine.add(d);
+    else if (mode === 'del' && has) mine.delete(d);
+    else return;
+    if (navigator.vibrate) navigator.vibrate(8);
+    changed();
+  };
+  let mouseHandled = false;
+  const start = (el) => {
+    if (S.config.closed) return toast('La votación ya cerró 🔒');
+    mode = mine.has(el.dataset.d) ? 'del' : 'add';
+    apply(el);
+  };
+  grid.addEventListener('pointerdown', (e) => {
+    const el = e.target.closest('.day[data-d]');
+    if (!el || e.pointerType !== 'mouse') return;
+    e.preventDefault();
+    mouseHandled = true;
+    start(el);
+  });
+  grid.addEventListener('pointerover', (e) => { if (mode && e.buttons) apply(e.target.closest('.day[data-d]')); });
+  window.addEventListener('pointerup', () => { mode = null; });
+  // touch: un tap = click (si el dedo se mueve para hacer scroll, no hay click)
+  grid.addEventListener('click', (e) => {
+    const el = e.target.closest('.day[data-d]');
+    if (mouseHandled) { mouseHandled = false; return; }
+    if (el) { start(el); mode = null; }
+  });
+}
+
+document.querySelectorAll('.chip').forEach((chip) => chip.onclick = () => {
+  if (S.config.closed) return toast('La votación ya cerró 🔒');
+  const wd = chip.dataset.wd;
+  const days = S.config.days;
+  if (wd === 'none') mine.clear();
+  else if (wd === 'all') days.forEach((d) => mine.add(d));
+  else {
+    const target = days.filter((d) => dt(d).getDay() === Number(wd));
+    const allIn = target.every((d) => mine.has(d));
+    target.forEach((d) => allIn ? mine.delete(d) : mine.add(d));
+  }
+  changed();
+});
+
+function changed() {
+  dirty = true;
+  setStatus('saving', 'Guardando…');
+  render();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveVotes, 700);
+}
+
+async function saveVotes() {
+  saving = true;
+  const sent = [...mine];
+  try {
+    S = await api('/api/votes', { method: 'PUT', body: JSON.stringify({ dates: sent }) });
+    // si hubo cambios mientras guardaba, se vuelve a guardar en el próximo ciclo
+    if (sent.length === mine.size && sent.every((d) => mine.has(d))) {
+      dirty = false;
+      setStatus('ok', 'Guardado');
+      if (!everVoted && mine.size) { everVoted = true; confetti(); toast('¡Voto registrado! 🎉 Podés cambiarlo cuando quieras'); }
+    } else saveTimer = setTimeout(saveVotes, 300);
+  } catch (e) {
+    setStatus('err', 'Sin guardar');
+    toast(e.message === 'Error de red' ? 'Sin conexión, reintentando…' : e.message);
+    if (e.status !== 409) saveTimer = setTimeout(saveVotes, 3000);
+    else { mine = new Set(S.me.dates); dirty = false; render(); }
+  } finally { saving = false; render(); }
+}
+
+function setStatus(kind, txt) {
+  $('#status').className = 'status ' + (kind === 'ok' ? 'ok' : kind === 'saving' ? 'saving' : '');
+  $('#status').style.color = kind === 'err' ? '#d1284f' : '';
+  $('#statusTxt').textContent = txt;
+}
+
+function render() {
+  const { config } = S;
+  const counts = config.days.map(countFor);
+  const max = Math.max(1, ...counts);
+
+  // calendario
+  document.querySelectorAll('#grid .day[data-d]').forEach((el) => {
+    const d = el.dataset.d;
+    const c = countFor(d);
+    el.style.setProperty('--h', (c / max).toFixed(2));
+    el.classList.toggle('sel', mine.has(d));
+    el.classList.toggle('final', config.finalDate === d);
+    el.classList.toggle('locked', config.closed);
+    el.querySelector('.cnt').textContent = c ? `👥${c}` : '';
+  });
+
+  $('#count').textContent = mine.size;
+  $('#countLbl').textContent = mine.size === 1 ? 'día elegido' : 'días elegidos';
+  $('#instr').innerHTML = config.closed
+    ? 'La votación está cerrada. Así quedaron tus días 👇'
+    : 'Tocá <b>todos</b> los días que podés. Se guarda solo ✨';
+  $('#chips').classList.toggle('hidden', config.closed);
+
+  // banner
+  let banner = '';
+  if (config.finalDate) {
+    const f = config.finalDate.replaceAll('-', '');
+    const next = new Date(dt(config.finalDate).getTime() + 864e5).toISOString().slice(0, 10).replaceAll('-', '');
+    const gcal = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Juntada 🍻')}&dates=${f}/${next}`;
+    banner = `<div class="banner">🎉 ¡Fecha confirmada! Nos juntamos el<b>${fmtLong(config.finalDate)}</b><a href="${gcal}" target="_blank" rel="noopener">📆 Agregar a mi calendario</a></div>`;
+  } else if (config.closed) {
+    banner = `<div class="banner closed">🔒 La votación cerró. Pronto anunciamos la fecha.</div>`;
+  }
+  $('#banner').innerHTML = banner;
+
+  renderResults();
+}
+
+function renderResults() {
+  const members = S.members.map((m) => (m.id === S.me.id ? { ...m, voted: mine.size > 0 } : m));
+  const voted = members.filter((m) => m.voted);
+  $('#votedTitle').textContent = `${voted.length} de ${members.length} ya votaron`;
+  $('#votedBar').style.width = (members.length ? (voted.length / members.length) * 100 : 0) + '%';
+  const missing = members.filter((m) => !m.voted);
+  $('#who').innerHTML = voted.map((m) => avatar(m)).join('') + missing.map((m) => avatar(m, true)).join('') +
+    (missing.length ? `<p class="sub" style="width:100%;margin-top:6px">Faltan: ${missing.map((m) => esc(m.name.split(' ')[0])).join(', ')} 👀</p>` : '');
+
+  const ranked = S.config.days.map((d) => ({ d, c: countFor(d) })).filter((x) => x.c > 0)
+    .sort((a, b) => b.c - a.c || a.d.localeCompare(b.d));
+  if (!ranked.length) {
+    $('#podium').innerHTML = '<p class="empty">Todavía nadie votó. ¡Sé el primero! 🙌</p>';
+    $('#rank').innerHTML = '';
+    return;
+  }
+  const top = ranked.slice(0, 3);
+  const order = [top[1], top[0], top[2]];
+  const medals = { 0: '🥇', 1: '🥈', 2: '🥉' };
+  $('#podium').innerHTML = `<div class="podium">${order.map((x, i) => {
+    if (!x) return '<div></div>';
+    const pos = top.indexOf(x);
+    return `<div class="pod p${pos + 1}" data-d="${x.d}"><div class="medal">${medals[pos]}</div>
+      <div class="when">${fmt(x.d)}</div><div class="block">${x.c}<small>${x.c === 1 ? 'amigo' : 'amigos'}</small></div></div>`;
+  }).join('')}</div>`;
+  const max = ranked[0].c;
+  $('#rank').innerHTML = ranked.slice(3, 12).map((x, i) => `
+    <li data-d="${x.d}" class="${mine.has(x.d) ? 'mine' : ''}"><span class="n">${i + 4}</span>
+      <div><div class="d">${fmt(x.d)}</div><div class="meter"><div style="width:${(x.c / max) * 100}%"></div></div></div>
+      <span class="c">${x.c}</span></li>`).join('');
+}
+
+// detalle de un día
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('.pod[data-d], .rank li[data-d]');
+  if (el) openDay(el.dataset.d);
+});
+function openDay(d) {
+  const ids = new Set((S.byDay[d] || []).filter((id) => id !== S.me.id));
+  if (mine.has(d)) ids.add(S.me.id);
+  const yes = S.members.filter((m) => ids.has(m.id));
+  const no = S.members.filter((m) => !ids.has(m.id));
+  $('#sheetBody').innerHTML = `<h3>${fmtLong(d)}</h3><p class="sub">${yes.length} pueden · ${no.length} no / sin votar</p>
+    <div class="people">${yes.map((m) => `<div class="person">${avatar(m)} ${esc(m.name)}${m.id === S.me.id ? ' (vos)' : ''} ✅</div>`).join('')}
+    ${no.map((m) => `<div class="person" style="opacity:.55">${avatar(m, true)} ${esc(m.name)}</div>`).join('')}</div>`;
+  $('#sheet').classList.add('on'); $('#sheetBg').classList.add('on');
+}
+$('#sheetBg').onclick = () => { $('#sheet').classList.remove('on'); $('#sheetBg').classList.remove('on'); };
+
+// tabs
+document.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => {
+  document.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('on', x === b));
+  $('#tab-vote').classList.toggle('hidden', b.dataset.tab !== 'vote');
+  $('#tab-results').classList.toggle('hidden', b.dataset.tab !== 'results');
+});
+
+// ---------- confetti ----------
+function confetti() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const c = $('#confetti'), ctx = c.getContext('2d');
+  c.width = innerWidth; c.height = innerHeight;
+  const parts = Array.from({ length: 140 }, () => ({
+    x: Math.random() * c.width, y: -20 - Math.random() * c.height * .5,
+    vx: (Math.random() - .5) * 4, vy: 2 + Math.random() * 4, r: Math.random() * 6.28,
+    vr: (Math.random() - .5) * .3, s: 6 + Math.random() * 6, col: COLORS[Math.floor(Math.random() * COLORS.length)],
+  }));
+  const t0 = performance.now();
+  (function frame(t) {
+    ctx.clearRect(0, 0, c.width, c.height);
+    for (const p of parts) {
+      p.x += p.vx; p.y += p.vy; p.vy += .05; p.r += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.col;
+      ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore();
+    }
+    if (t - t0 < 3500) requestAnimationFrame(frame); else ctx.clearRect(0, 0, c.width, c.height);
+  })(t0);
+}
+
+boot();
+</script>
+</body>
+</html>

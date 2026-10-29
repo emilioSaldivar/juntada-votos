@@ -1,0 +1,7 @@
+.env
+.env.*
+data
+bot
+bot-auth
+.git
+node_modules

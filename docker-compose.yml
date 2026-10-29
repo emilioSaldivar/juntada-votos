@@ -1,0 +1,30 @@
+services:
+  juntada:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /app/data
+      BOT_WEBHOOK_URL: http://bot:3100/send
+    volumes:
+      - ./data:/app/data
+    # Solo escucha local: Cloudflare Tunnel o tu reverse proxy (nginx/caddy) le pega acá.
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks: [interna]
+    depends_on: [bot]
+
+  # Bot de WhatsApp: sin puertos publicados, solo accesible desde la app por la red interna.
+  bot:
+    build: ./bot
+    restart: unless-stopped
+    environment:
+      BOT_WEBHOOK_TOKEN: ${BOT_WEBHOOK_TOKEN}
+      BOT_MAX_PER_HOUR: ${BOT_MAX_PER_HOUR:-60}
+      BOT_PAIR_PHONE: ${BOT_PAIR_PHONE:-}
+    volumes:
+      - ./bot-auth:/app/auth   # sesión de WhatsApp: tratarla como una contraseña
+    networks: [interna]
+
+networks:
+  interna:

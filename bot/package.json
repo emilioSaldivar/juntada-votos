@@ -1,0 +1,13 @@
+{
+  "name": "juntada-bot",
+  "private": true,
+  "description": "Bot mínimo de WhatsApp (Baileys) que solo envía mensajes para la juntada",
+  "main": "index.js",
+  "scripts": { "start": "node index.js" },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "baileys": "6.7.24",
+    "pino": "10.4.0",
+    "qrcode-terminal": "0.12.0"
+  }
+}

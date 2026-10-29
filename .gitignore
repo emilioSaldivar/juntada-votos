@@ -1,0 +1,15 @@
+# Secretos y datos (nunca al repo)
+.env
+.env.*
+!.env.example
+!.env.deploy.example
+data/
+bot-auth/
+auth/
+
+node_modules/
+*.log
+.DS_Store
+
+# Notas privadas de operación (infra propia)
+CLAUDE.md
